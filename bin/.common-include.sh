@@ -6,13 +6,7 @@
 
 set -Eeuo pipefail & set -e
 
-function _pushd(){
-    command pushd $1 >/dev/null
-}
-
-function _popd(){
-    command popd >/dev/null
-}
+DENO_VERSION=1.3.0
 
 function _get_command_or(){
 	local cmd=$1

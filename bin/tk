@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
 
+#
+# tk == 'Tool Kit'
+# This script is the entry point for all the build tooling and functions. It will find the appropriate
+# script/tool to execute based on the project you are in
+#
+# The current default naive implementation just searches for bin/<task>[.sh|.ts|.js|] up the folder hierachy,
+# or until it reaches the root dir, and falls back to tk built in defaults after that
+#
+
 set -Eeuo pipefail & set -e
+
+DENO_VERSION=1.3.0
 
 tk_cwd="$PWD"
 root_dir="$(dirname "$(realpath "${0%/..}")")/.."
 cd "$root_dir" # set the CWD to the root dir
 source bin/.common-include.sh
-
-# echo "tk_cwd=$tk_cwd"
-# echo "tk_script=$tk_script"
-# echo "tk_cmd=$tk_cmd"
-# echo "tk_cmd_args=$tk_cmd_args"
-
-# find cmd
-# cmd is in the bin dir of the project
 
 function invoke_deno_script(){
   script="$1"
@@ -21,7 +24,13 @@ function invoke_deno_script(){
   script_args="$@"
 
   script_dir="$(dirname "$script")/.."
-  echo "executing deno script '$script' in dir '$script_dir'"
+
+  if ! command -v deno &> /dev/null; then
+    	echo "'deno' is not installed'" 
+      $root_dir/bin/deno-install.sh
+	fi
+
+  #echo "executing deno script '$script' in dir '$script_dir'"
 
   #extract deno options from script header
   deno_args="$(head -3 "$script" | grep 'deno-args:' | cut -d ':' -f2)"
@@ -30,119 +39,128 @@ function invoke_deno_script(){
   fi
 
   pushd "$script_dir" >/dev/null
-    deno run $deno_args "$script_args"
+    env \
+    TK_CWD="$tk_cwd" \
+    TK_ROOT="$root_dir" \
+    TK_TASK_ARGS="$script_args" \
+    deno run $deno_args $script_args
   popd >/dev/null
 }
 
-function invoke_builtin(){
-  script="$1"
-  shift
-  script_args="$@"
-  if [[ -f "$root_dir/bin/$script.ts" ]]; then
-    invoke_deno_script "$root_dir/bin/$script.ts" "$script_args"
-  elif [[ -f "$root_dir/bin/$script.sh" ]]; then
-    $root_dir/bin/$script.sh "$script_args"
-  elif [[ -f "$root_dir/bin/$script" ]]; then
-    $root_dir/bin/$script "$script_args"
-  else
-    echo "no script '$script' with args '$script_args'"
-    exit 1
-  fi
-}
+tried_script_path=()
 
 function invoke_script(){
+  file="$1"
+  shift
+  script_args="$@"
+
+  if [[ $file == *".ts" ]]; then
+    invoke_deno_script "$file" $script_args
+  elif [[ $file == *".sh" ]]; then
+    #echo "executing bash script '$file'"
+    "$file" $script_args
+  else
+    #echo "executing script '$file'"
+    "$file" $script_args
+  fi  
+}
+
+function invoke_builtin_task(){
   script="$1"
   shift
   script_args="$@"
 
+  try_scripts=( "$root_dir/bin/$script" "$root_dir/bin/$script.sh" "$root_dir/bin/$script.ts" "$root_dir/bin/$script.deno.ts"  "$root_dir/bin/tk-$script.ts" "$root_dir/bin/tk-$script.deno.ts")
+  for file in ${try_scripts[@]}; do
+    tried_script_path+=("$file")
+    #echo "trying: $file"
+    if [[ -f "$file" ]]; then
+      invoke_script "$file" "$script_args"
+      return
+    fi
+  done
+
+  echo "could not find script for task '$script'. Tried:"
+  for path in ${tried_script_path[@]}; do
+    echo "  '$path'"
+  done
+  exit 1
+}
+
+
+function invoke_task(){
+  script="$1"
+  shift
+  script_args="$@"
+
+  tried_script_path=()
+
+  # don't allow overrides for builtin tasks
+  if [[ $script == "tk-"* ]]; then
+    invoke_builtin_task "$script" "$script_args"
+    return
+  fi
   #echo "invoke script: $script, args: $script_args "
   
   cur_dir="$tk_cwd"
+  # try to find a script to exdcute the given task
   while [ 1 ]; do
-    try_scritps=( "$cur_dir/bin/$script" "$cur_dir/bin/$script.sh" "$cur_dir/bin/$script.ts" )
-    for opt in ${try_scritps[@]}; do
-      #echo "trying: $opt"
-      if [[ -f "$opt" ]]; then
-        if [[ $opt == *".ts" ]]; then
-          invoke_deno_script "$opt" "$script_args"
-        elif [[ $opt == *".sh" ]]; then
-          echo "executing bash script '$opt'"
-        else
-          echo "executing script '$opt'"
-          "$opt" $script_args
-        fi  
+    try_scripts=("$cur_dir/bin/$script" "$cur_dir/bin/$script.sh" "$cur_dir/bin/$script.ts")
+    for file in ${try_scripts[@]}; do
+      tried_script_path+=("$file")
+      #echo "trying: $file"
+      if [[ -f "$file" ]]; then
+        invoke_script "$file" $script_args
         return
       fi
     done
+    # if it's the workspace root, stop
     if [[ -f "$cur_dir/projects.txt" ]]; then
-      invoke_builtin "$script" $script_args
+      invoke_builtin_task "$script" $script_args
       return
     else
+      # walk up one dir and try again
       #echo "cur_dir=$cur_dir"
       cur_dir="$cur_dir/.."
-      
+      # if we hit the root, stop
       if [[ "$(realpath $cur_dir)" == '/' ]]; then
-        invoke_builtin "$script" $script_args
+        invoke_builtin_task "$script" $script_args
         return
       fi
     fi
   done
 }
 
-
-function xxinvoke_script(){
-  script="$1"
-  shift
-  script_args="$@"
-
-  echo "invoke script: $script, args: $script_args "
-  
-}
-function parse_args(){
-  task=""
-  task_args=""
-  
-  while (( "$#" )); do
-    val="$1"
-    #echo "val=$val"
-    if [[ "$val" == "" ]]; then
-      #echo "end args"
-      if [[ "$task" != "" ]]; then
-        invoke_script "$task" "$task_args"
-      fi
+function parse_args_and_invoke_tasks(){
+  # loop through all the args
+  while [ 1 ]; do
+    arg="$1"
+    shift
+    # have we finsihed parsing?
+    # if [[ "$arg" == "" ]]; then
+    #   #echo "end args"
+    #   if [[ "$task" != "" ]]; then
+    #     invoke_task "$task" "$task_args"
+    #   fi
+    #   return
+    # fi
+    # option arg (--key==val)
+    if [[ "$arg" == '--'* ]]; then
+      # TODO
+      echo "TODO:global opt:$arg"
+    else 
+      # have a previous task, so we need to run it first
+      invoke_task "$arg" $@
+      # # next task
+      # task_args=""
+      # task="$arg"
       return
     fi
-    #echo "val=$val"
-    if [[ "$val" == '--'* ]]; then
-      if [[ $task != "" ]]; then
-        #echo "task opt:$val"
-        task_args="$task_args $val"
-      else
-        echo "global opt:$val"
-      fi
-    else 
-      if [[ ! "$task" == "" ]]; then
-        invoke_script "$task" "$task_args"
-      fi
-      task_args=""
-      task="$val"
-      #echo "task:$val"
-    fi
-    shift
   done
-
-   if [[ "$task" != "" ]]; then
-        invoke_script "$task" "$task_args"
-   fi
+  # make sure we run the last task defined
+  # if [[ "$task" != "" ]]; then
+  #     invoke_task "$task" "$task_args"
+  # fi
 }
 
-# tk_cmd="$1"
-# shift
-# tk_cmd_args="$@"
-
-# tk_cwd="$PWD"
-# tk_script="${0%}"
-
-#invoke_script "$tk_cmd" $tk_cmd_args
-
-parse_args "$@"
+parse_args_and_invoke_tasks "$@"

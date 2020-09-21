@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail & set -e
+cd "${0%/*}/.." # set the CWD to the root dir
+
+source bin/.common-include.sh
+source bin/.projects-include.sh
+
+
+function _invoke_git(){
+    total=$1
+    num=$2
+    p_name=$3
+    p_dir=$4
+    p_repo=$5
+    p_branch=$6
+    p_tags=$7
+
+    shift 7
+    git_args="$@"
+
+    echo "$num/$total $p_dir"
+    if [[ -f "$p_dir/bin/projects-git" ]]; then
+        
+    else
+
+    fi
+    if ! [[ -d "$p_dir" ]]; then
+      echo "no project, skipping"
+    else
+        _pushd $p_dir
+        if [[ -f "$p_dir/bin/projects-git" ]]
+            git $git_args
+        _popd
+    fi
+}
+
+git_args="$@"
+
+_projects_foreach_entry _invoke_git "$git_args"

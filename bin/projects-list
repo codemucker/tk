@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail & set -e
+cd "${0%/*}/.." # set the CWD to the root dir
+source bin/.projects-include.sh
+
+function _print_entry(){
+    total=$1
+    num=$2
+    p_name=$3
+    p_dir=$4
+    p_repo=$5
+    p_branch=$6
+    p_tags=$7
+
+    echo "$num/$total $p_name -> $p_dir"
+    echo "    $p_branch @ $p_repo   $p_tags"
+}
+
+_projects_foreach_entry _print_entry

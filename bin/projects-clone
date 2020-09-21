@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail & set -e
+cd "${0%/*}/.." # set the CWD to the root dir
+
+source bin/.projects-include.sh
+
+function _run_project_checkout(){
+  proj_dir="$1"
+  echo "Running project checkout $proj_dir"
+  pushd "$proj_dir" > /dev/null
+  if [[ -f ./bin/projects-clone ]]; then
+    ./bin/projects-clone
+  elif [[ -f ./bin/projects-clone.sh ]]; then
+    ./bin/projects-clone.sh
+  else
+      echo "No 'bin/projects-clone[.sh]'"
+  fi
+  popd > /dev/null
+}
+
+function _clone_project(){
+    total=$1
+    num=$2
+    p_name=$3
+    p_dir=$4
+    p_repo=$5
+    p_branch=$6
+    p_tags=$7
+
+
+    echo "$num/$total cloning $p_name from $p_repo to $p_dir"
+    if [[ -d "$p_dir" ]]; then
+      echo "Project exists, skipping checkout"
+      _run_project_checkout "$p_dir"
+    else
+      # check user has access to the repo
+      if git ls-remote $p_repo >/dev/null  2>/dev/null; then
+        git clone $p_repo $p_dir
+        _run_project_checkout "$p_dir"
+      else
+        echo "Access denied, or no repo at location '$p_repo'"
+      fi
+    fi
+}
+_projects_foreach_entry _clone_project

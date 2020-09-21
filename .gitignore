@@ -1,0 +1,17 @@
+workspace-*
+*-workspace
+
+# other editors
+~$*
+*~
+
+# random
+
+*.log
+out.txt
+
+# eclipse
+.bin/
+.settings/
+.project
+.classpath

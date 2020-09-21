@@ -1,0 +1,148 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail & set -e
+
+tk_cwd="$PWD"
+root_dir="$(dirname "$(realpath "${0%/..}")")/.."
+cd "$root_dir" # set the CWD to the root dir
+source bin/.common-include.sh
+
+# echo "tk_cwd=$tk_cwd"
+# echo "tk_script=$tk_script"
+# echo "tk_cmd=$tk_cmd"
+# echo "tk_cmd_args=$tk_cmd_args"
+
+# find cmd
+# cmd is in the bin dir of the project
+
+function invoke_deno_script(){
+  script="$1"
+  shift
+  script_args="$@"
+
+  script_dir="$(dirname "$script")/.."
+  echo "executing deno script '$script' in dir '$script_dir'"
+
+  #extract deno options from script header
+  deno_args="$(head -3 "$script" | grep 'deno-args:' | cut -d ':' -f2)"
+  if [[ "$deno_args" == "" ]]; then
+      deno_args="--allow-run --allow-read --allow-write --unstable --allow-env $script"
+  fi
+
+  pushd "$script_dir" >/dev/null
+    deno run $deno_args "$script_args"
+  popd >/dev/null
+}
+
+function invoke_builtin(){
+  script="$1"
+  shift
+  script_args="$@"
+  if [[ -f "$root_dir/bin/$script.ts" ]]; then
+    invoke_deno_script "$root_dir/bin/$script.ts" "$script_args"
+  elif [[ -f "$root_dir/bin/$script.sh" ]]; then
+    $root_dir/bin/$script.sh "$script_args"
+  elif [[ -f "$root_dir/bin/$script" ]]; then
+    $root_dir/bin/$script "$script_args"
+  else
+    echo "no script '$script' with args '$script_args'"
+    exit 1
+  fi
+}
+
+function invoke_script(){
+  script="$1"
+  shift
+  script_args="$@"
+
+  #echo "invoke script: $script, args: $script_args "
+  
+  cur_dir="$tk_cwd"
+  while [ 1 ]; do
+    try_scritps=( "$cur_dir/bin/$script" "$cur_dir/bin/$script.sh" "$cur_dir/bin/$script.ts" )
+    for opt in ${try_scritps[@]}; do
+      #echo "trying: $opt"
+      if [[ -f "$opt" ]]; then
+        if [[ $opt == *".ts" ]]; then
+          invoke_deno_script "$opt" "$script_args"
+        elif [[ $opt == *".sh" ]]; then
+          echo "executing bash script '$opt'"
+        else
+          echo "executing script '$opt'"
+          "$opt" $script_args
+        fi  
+        return
+      fi
+    done
+    if [[ -f "$cur_dir/projects.txt" ]]; then
+      invoke_builtin "$script" $script_args
+      return
+    else
+      #echo "cur_dir=$cur_dir"
+      cur_dir="$cur_dir/.."
+      
+      if [[ "$(realpath $cur_dir)" == '/' ]]; then
+        invoke_builtin "$script" $script_args
+        return
+      fi
+    fi
+  done
+}
+
+
+function xxinvoke_script(){
+  script="$1"
+  shift
+  script_args="$@"
+
+  echo "invoke script: $script, args: $script_args "
+  
+}
+function parse_args(){
+  task=""
+  task_args=""
+  
+  while (( "$#" )); do
+    val="$1"
+    #echo "val=$val"
+    if [[ "$val" == "" ]]; then
+      #echo "end args"
+      if [[ "$task" != "" ]]; then
+        invoke_script "$task" "$task_args"
+      fi
+      return
+    fi
+    #echo "val=$val"
+    if [[ "$val" == '--'* ]]; then
+      if [[ $task != "" ]]; then
+        #echo "task opt:$val"
+        task_args="$task_args $val"
+      else
+        echo "global opt:$val"
+      fi
+    else 
+      if [[ ! "$task" == "" ]]; then
+        invoke_script "$task" "$task_args"
+      fi
+      task_args=""
+      task="$val"
+      #echo "task:$val"
+    fi
+    shift
+  done
+
+   if [[ "$task" != "" ]]; then
+        invoke_script "$task" "$task_args"
+   fi
+}
+
+# tk_cmd="$1"
+# shift
+# tk_cmd_args="$@"
+
+# tk_cwd="$PWD"
+# tk_script="${0%}"
+
+#invoke_script "$tk_cmd" $tk_cmd_args
+
+parse_args "$@"

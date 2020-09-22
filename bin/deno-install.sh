@@ -12,4 +12,4 @@ source bin/.common-include.sh
 
 echo "downloading and installing deno '$DENO_VERSION'"
 curl -fsSL https://deno.land/x/install/install.sh | sh -s v$DENO_VERSION
-deno --verson
+deno --version

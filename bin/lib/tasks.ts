@@ -40,6 +40,9 @@ function walkUpListingScripts() {
                 }
             }
         }
+        if (existsSync(`${dir}/projects.json`)) {
+            break;
+        }
         dir = Deno.realPathSync(`${dir}/..`);
 
         //TODO:how about on windows machines?

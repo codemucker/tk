@@ -70,7 +70,7 @@ async function eachProjectInvoke(invokeArgs: string) {
         count++;
         const projExists = existsSync(`${projectsRoot}/${proj.dir}`);
         if (projExists) {
-            log.info(`${count}/${projects.length} ${proj.dir} - invoke`);
+            log.info(`${count}/${projects.length} ${proj.dir} - invoke '${invokeArgs}'`);
             await exec({ cmd: `${invokeArgs}`, dir: projectsRoot + "/" + proj.dir, silent: false });
         }
     }

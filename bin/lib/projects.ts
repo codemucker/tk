@@ -20,7 +20,7 @@ async function listProjects() {
 async function eachProjectClone() {
     const promises: Promise<string>[] = [];
     let count = 0;
-    projects.forEach((proj) => {
+    for (const proj of projects) {
         count++;
         const projExists = existsSync(`${projectsRoot}/${proj.dir}/`);
         log.trace(`projExists:${projExists}, proj:${proj.dir}`);
@@ -28,12 +28,13 @@ async function eachProjectClone() {
             log.info(`${count}/${projects.length} ${proj.dir} - exists, skipping clone`);
         } else {
             log.info(`${count}/${projects.length} ${proj.dir} - cloning`);
-            const p = exec({ cmd: `git clone ${proj.repo} ${proj.dir}`, dir: projectsRoot });
-            promises.push(p);
+            await exec({ cmd: `git clone ${proj.repo} ${proj.dir}`, dir: projectsRoot });
         }
-    });
-
-    await Promise.all(promises);
+        const projFileExists = existsSync(`${projectsRoot}/${proj.dir}/projects.json`);
+        if (projFileExists) {
+            await exec({ cmd: "tk tk:projects clone", dir: `${projectsRoot}/${proj.dir}`, silent: false });
+        }
+    }
 }
 
 async function execGitCmdPerProject(gitCmd: string) {

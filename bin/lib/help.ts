@@ -11,6 +11,7 @@ console.log("   tk projects <cmd>");
 console.log("   tk projects help");
 console.log("   tk clear-cache");
 console.log("   tk tasks");
+console.log("   tk update");
 console.log("   tk <your-task-script> <script args>  (in the './bin/' dir as we walk up the folder structure)");
 console.log("");
 console.log(

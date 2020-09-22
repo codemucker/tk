@@ -22,7 +22,7 @@ async function eachProjectClone() {
     let count = 0;
     projects.forEach((proj) => {
         count++;
-        const projExists = existsSync(`./${proj.dir}`);
+        const projExists = existsSync(`${projectsRoot}/${proj.dir}/`);
         log.trace(`projExists:${projExists}, proj:${proj.dir}`);
         if (projExists) {
             log.info(`${count}/${projects.length} ${proj.dir} - exists, skipping clone`);
@@ -75,8 +75,8 @@ async function eachProjectInvoke(invokeArgs: string) {
     }
 }
 
-const task = Deno.args[0];
-const taskArgs = Deno.args.slice(1).join(" ");
+const task = Deno.args.length > 0 ? Deno.args[0] : "list";
+const taskArgs = Deno.args.length > 0 ? Deno.args.slice(1).join(" ") : "";
 
 switch (task) {
     case "list":
@@ -94,6 +94,7 @@ switch (task) {
     case "mvn":
         eachProjectMvn(taskArgs);
         break;
+    case "":
     case "help":
         console.log("tk projects clone : clone all projects");
         console.log("tk projects git <git-cmd> : run the given git command on each project");

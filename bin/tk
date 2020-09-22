@@ -61,12 +61,12 @@ function invoke_script(){
 
   if [[ $file == *".ts" ]]; then
     invoke_deno_script "$file" $script_args
-  elif [[ $file == *".sh" ]]; then
-    #echo "executing bash script '$file'"
-    "$file" $script_args
   else
+    script_dir="$(dirname "$file")"
     #echo "executing script '$file'"
-    "$file" $script_args
+    pushd "$script_dir/.."
+     "$file" $script_args
+    popd
   fi  
 }
 
@@ -122,7 +122,7 @@ function invoke_task(){
       fi
     done
     # if it's the workspace root, stop
-    if [[ -f "$cur_dir/projects.txt" ]] || [[ -f "$cur_dir/projects.json" ]] || [[ -f "$cur_dir/tk.projects.json" ]]; then
+    if [[ -f "$cur_dir/projects.json" ]] || [[ -f "$cur_dir/tk.projects.json" ]]; then
       invoke_builtin_task "$script" $script_args
       return
     else

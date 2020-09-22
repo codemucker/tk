@@ -75,7 +75,7 @@ function invoke_builtin_task(){
   shift
   script_args="$@"
 
-  try_scripts=( "$root_dir/bin/$script" "$root_dir/bin/$script.sh" "$root_dir/bin/lib/$script.ts" )
+  try_scripts=( "$root_dir/bin/$script" "$root_dir/bin/$script.sh" "$root_dir/bin/tasks/$script.ts" )
   for file in ${try_scripts[@]}; do
     file="$($_realpath "$file")"
     tried_script_path+=("$file")

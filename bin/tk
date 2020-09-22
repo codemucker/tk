@@ -15,7 +15,7 @@ tk_cwd="$PWD"
 root_dir="$(dirname "$(realpath "${0%/..}")")/.."
 user_home="$HOME"
 deno_dir="${user_home}/.tk/deno-dir"
-
+tk_dir="${user_home}/.tk"
 
 
 cd "$root_dir" # set the CWD to the root dir
@@ -46,6 +46,7 @@ function invoke_deno_script(){
     TK_CWD="$tk_cwd" \
     TK_ROOT="$root_dir" \
     TK_TASK_ARGS="$script_args" \
+    TK_DIR="$tk_dir" \
     DENO_DIR="$deno_dir" \
     deno run $deno_args $script_args
   popd >/dev/null

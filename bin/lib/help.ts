@@ -2,7 +2,9 @@
  * Print the tk help
  */
 
+import { DENO_DIR, TK_CWD, TK_ROOT } from "./_cfg.ts";
 import { getLogger } from "./_deps.ts";
+
 const log = getLogger("tk:help");
 
 console.log("tk tasks:");
@@ -20,6 +22,6 @@ console.log(
 console.log("      e.g.  'tk tk:help'");
 console.log("");
 console.log("tk settings:");
-console.log(`    TK_ROOT : '${Deno.env.get("TK_ROOT")}'`);
-console.log(`    TK_CWD : '${Deno.env.get("TK_CWD")}'`);
-console.log(`    DENO_DIR : '${Deno.env.get("DENO_DIR")}'`);
+console.log(`    TK_ROOT : '${TK_ROOT}'`);
+console.log(`    TK_CWD : '${TK_CWD}'`);
+console.log(`    DENO_DIR : '${DENO_DIR}'`);

@@ -2,6 +2,7 @@
  * Find all git projects in the cuurent sub directories
  */
 
+import { TK_CWD } from "./_cfg.ts";
 import { exec, existsSync, getLogger } from "./_deps.ts";
 import { Project } from "./_projects.ts";
 
@@ -41,7 +42,7 @@ async function scan(dir: string, projects: Project[]) {
 }
 
 async function findGitProjects() {
-    let dir = Deno.env.get("TK_CWD");
+    let dir = TK_CWD;
     if (!dir) {
         log.warn("no directory to start scan from");
         return;

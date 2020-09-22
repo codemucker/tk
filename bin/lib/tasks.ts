@@ -2,20 +2,17 @@
  * List all currently available tasks
  */
 
+import { TK_CWD, USER_HOME_DIR } from "./_cfg.ts";
 import { existsSync, getLogger } from "./_deps.ts";
-
 const log = getLogger("tk:projects");
 
-const startDir = Deno.env.get("TK_CWD");
-const userHome = Deno.env.get("HOME");
-log.trace(`looking for tasks from '${startDir}'`);
-let count = 15;
-
 function walkUpListingScripts() {
-    let dir = startDir;
+    let dir = TK_CWD;
+    log.trace(`looking for tasks from '${dir}'`);
+    let count = 15;
+
     const tasksByPath: { [name: string]: string } = {};
 
-    const tasks = new Set<string>();
     while (true) {
         count--;
         const binDir = `${dir}/bin`;
@@ -46,7 +43,7 @@ function walkUpListingScripts() {
         dir = Deno.realPathSync(`${dir}/..`);
 
         //TODO:how about on windows machines?
-        if (dir == "/" || count <= 0 || dir == userHome) {
+        if (dir == "/" || count <= 0 || dir == USER_HOME_DIR) {
             break;
         }
     }

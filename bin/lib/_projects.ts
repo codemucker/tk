@@ -1,15 +1,13 @@
+import { PROJECTS_FILE, TK_CWD } from "./_cfg.ts";
 import { existsSync, getLogger, path } from "./_deps.ts";
 
 const log = getLogger("tk.projects");
 
-const startDir = Deno.env.get("TK_CWD");
-
-log.trace(`looking projects from ${startDir}`);
-const PROJECTS_FILE = "projects.json";
-let count = 15;
-
 function findProjectFile() {
-    let dir = startDir;
+    let dir = TK_CWD;
+    log.trace(`looking projects from ${dir}`);
+    let count = 15;
+
     while (true) {
         count--;
         const projectsFile = `${dir}/${PROJECTS_FILE}`;

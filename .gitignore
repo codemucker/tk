@@ -1,5 +1,4 @@
-workspace-*
-*-workspace
+build
 
 # other editors
 ~$*

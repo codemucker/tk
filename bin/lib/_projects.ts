@@ -1,4 +1,4 @@
-import { existsSync, getLogger, readJsonSync } from "./_deps.ts";
+import { existsSync, getLogger, path } from "./_deps.ts";
 
 const log = getLogger("tk.projects");
 
@@ -56,10 +56,14 @@ function toProject(proj: ProjectJson): Project {
     };
 }
 
-export function readProjects(): Project[] {
-    const projectsJson = readJsonSync(findProjectFile()) as any;
-    log.trace("Found project file", { file: PROJECTS_FILE });
+export async function readProjects(): Promise<{ projects: Project[]; projectsRoot: string }> {
+    const projFilePath = findProjectFile();
+    const projectsJson = JSON.parse(await Deno.readTextFile(projFilePath));
+    log.trace("Found project file", { file: projFilePath });
 
     const projects = (projectsJson?.projects || []) as ProjectJson[];
-    return projects.map(toProject).filter((p) => p.enabled);
+    const enabledProjects = projects.map(toProject).filter((p) => p.enabled);
+
+    const projRoot = path.dirname(projFilePath);
+    return { projectsRoot: projRoot, projects: enabledProjects };
 }

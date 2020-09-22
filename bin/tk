@@ -11,10 +11,13 @@
 
 set -Eeuo pipefail & set -e
 
-DENO_VERSION=1.3.0
-
 tk_cwd="$PWD"
 root_dir="$(dirname "$(realpath "${0%/..}")")/.."
+user_home="$HOME"
+deno_dir="${user_home}/.tk/deno-dir"
+
+
+
 cd "$root_dir" # set the CWD to the root dir
 source bin/.common-include.sh
 
@@ -35,7 +38,7 @@ function invoke_deno_script(){
   #extract deno options from script header
   deno_args="$(head -3 "$script" | grep 'deno-args:' | cut -d ':' -f2)"
   if [[ "$deno_args" == "" ]]; then
-      deno_args="--allow-run --allow-read --allow-write --unstable --allow-env $script"
+      deno_args="--allow-all --unstable $script"
   fi
 
   pushd "$script_dir" >/dev/null
@@ -43,6 +46,7 @@ function invoke_deno_script(){
     TK_CWD="$tk_cwd" \
     TK_ROOT="$root_dir" \
     TK_TASK_ARGS="$script_args" \
+    DENO_DIR="$deno_dir" \
     deno run $deno_args $script_args
   popd >/dev/null
 }
@@ -70,7 +74,7 @@ function invoke_builtin_task(){
   shift
   script_args="$@"
 
-  try_scripts=( "$root_dir/bin/$script" "$root_dir/bin/$script.sh" "$root_dir/bin/$script.ts" "$root_dir/bin/$script.deno.ts"  "$root_dir/bin/tk-$script.ts" "$root_dir/bin/tk-$script.deno.ts")
+  try_scripts=( "$root_dir/bin/lib/$script" "$root_dir/bin/$script.sh" "$root_dir/bin/lib/$script.ts" )
   for file in ${try_scripts[@]}; do
     tried_script_path+=("$file")
     #echo "trying: $file"
@@ -96,7 +100,8 @@ function invoke_task(){
   tried_script_path=()
 
   # don't allow overrides for builtin tasks
-  if [[ $script == "tk-"* ]]; then
+  if [[ $script == "tk:"* ]]; then
+    script=$(echo "$script" | cut -d':' -f 2- )
     invoke_builtin_task "$script" "$script_args"
     return
   fi
@@ -115,7 +120,7 @@ function invoke_task(){
       fi
     done
     # if it's the workspace root, stop
-    if [[ -f "$cur_dir/projects.txt" ]]; then
+    if [[ -f "$cur_dir/projects.txt" ]] || [[ -f "$cur_dir/projects.json" ]] || [[ -f "$cur_dir/tk.projects.json" ]]; then
       invoke_builtin_task "$script" $script_args
       return
     else
@@ -123,7 +128,7 @@ function invoke_task(){
       #echo "cur_dir=$cur_dir"
       cur_dir="$cur_dir/.."
       # if we hit the root, stop
-      if [[ "$(realpath $cur_dir)" == '/' ]]; then
+      if [[ "$(realpath $cur_dir)" == '/' ]] || [[ "$cur_dir" == "$user_home" ]] ; then
         invoke_builtin_task "$script" $script_args
         return
       fi

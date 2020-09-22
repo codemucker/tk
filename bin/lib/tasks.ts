@@ -51,6 +51,8 @@ function walkUpListingScripts() {
     Object.entries(tasksByPath).forEach((entry) => {
         console.log(`   ${entry[0]}     ${entry[1]}`);
     });
+
+    console.log("For builtin tasks, run 'tk help' or 'tk tk:help'");
 }
 
 walkUpListingScripts();

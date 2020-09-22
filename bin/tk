@@ -74,8 +74,9 @@ function invoke_builtin_task(){
   shift
   script_args="$@"
 
-  try_scripts=( "$root_dir/bin/lib/$script" "$root_dir/bin/$script.sh" "$root_dir/bin/lib/$script.ts" )
+  try_scripts=( "$root_dir/bin/$script" "$root_dir/bin/$script.sh" "$root_dir/bin/lib/$script.ts" )
   for file in ${try_scripts[@]}; do
+    file="$($_realpath "$file")"
     tried_script_path+=("$file")
     #echo "trying: $file"
     if [[ -f "$file" ]]; then
@@ -126,9 +127,9 @@ function invoke_task(){
     else
       # walk up one dir and try again
       #echo "cur_dir=$cur_dir"
-      cur_dir="$cur_dir/.."
+      cur_dir="$($_realpath $cur_dir/..)"
       # if we hit the root, stop
-      if [[ "$(realpath $cur_dir)" == '/' ]] || [[ "$cur_dir" == "$user_home" ]] ; then
+      if [[ "$cur_dir" == '/' ]] || [[ "$cur_dir" == "$user_home" ]] ; then
         invoke_builtin_task "$script" $script_args
         return
       fi
@@ -141,31 +142,15 @@ function parse_args_and_invoke_tasks(){
   while [ 1 ]; do
     arg="$1"
     shift
-    # have we finsihed parsing?
-    # if [[ "$arg" == "" ]]; then
-    #   #echo "end args"
-    #   if [[ "$task" != "" ]]; then
-    #     invoke_task "$task" "$task_args"
-    #   fi
-    #   return
-    # fi
-    # option arg (--key==val)
     if [[ "$arg" == '--'* ]]; then
       # TODO
       echo "TODO:global opt:$arg"
     else 
-      # have a previous task, so we need to run it first
       invoke_task "$arg" $@
-      # # next task
-      # task_args=""
-      # task="$arg"
       return
     fi
   done
-  # make sure we run the last task defined
-  # if [[ "$task" != "" ]]; then
-  #     invoke_task "$task" "$task_args"
-  # fi
+  # make sure 
 }
 
 parse_args_and_invoke_tasks "$@"

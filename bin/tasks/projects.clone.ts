@@ -2,6 +2,7 @@
  * Cloen or update all the projects
  */
 
+import { PROJECTS_FILE } from "./_cfg.ts";
 import { exec, existsSync, getLogger } from "./_deps.ts";
 import { readProjects } from "./_projects.ts";
 
@@ -21,8 +22,9 @@ for (const proj of projects) {
         log.info(`${count}/${projects.length} ${proj.dir} - cloning`);
         await exec({ cmd: `git clone ${proj.repo} ${proj.dir}`, dir: projectsRoot });
     }
-    const projFileExists = existsSync(`${projectsRoot}/${proj.dir}/projects.json`);
-    if (projFileExists) {
+    const subprojectsFile = `${projectsRoot}/${proj.dir}/${PROJECTS_FILE}`;
+    if (existsSync(subprojectsFile)) {
+        log.info(`Cloning subprojects in ${subprojectsFile}`);
         await exec({ cmd: "tk tk.projects.clone", dir: `${projectsRoot}/${proj.dir}`, silent: false });
     }
 }

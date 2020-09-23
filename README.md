@@ -8,4 +8,6 @@ makes it easier to manage multiple disparate codebases
 The current default naive implementation just searches for bin/<task>[.sh|.ts|.deno.ts|] up the folder hierachy,
 or until it reaches the root dir, and falls back to tk built-in defaults after that
 
-To install, clone this repo and link to bin/tc into your PATH (e.g ~/bin/tk==>/path/to/tc/repo/bin/tc)
+To install, clone this repo and link to bin/tk into your PATH (e.g ~/bin/tk==>/path/to/tk/repo/bin/tk)
+
+Then run 'tk tk.help' for more info

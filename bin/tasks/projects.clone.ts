@@ -19,8 +19,22 @@ for (const proj of projects) {
     if (projExists) {
         log.info(`${count}/${projects.length} ${proj.dir} - exists, skipping clone`);
     } else {
-        log.info(`${count}/${projects.length} ${proj.dir} - cloning`);
-        await exec({ cmd: `git clone ${proj.repo} ${proj.dir}`, dir: projectsRoot });
+        let canAccessRepo = true;
+        try {
+            await exec({
+                cmd: `git ls-remote ${proj.repo} >/dev/null  2>/dev/null`,
+                dir: projectsRoot,
+                silent: false,
+                logError: false,
+            });
+        } catch (err) {
+            canAccessRepo = false;
+            log.warn(`No access to repo '${proj.repo}', skipping`);
+        }
+        if (canAccessRepo) {
+            log.info(`${count}/${projects.length} ${proj.dir} - cloning`);
+            await exec({ cmd: `git clone ${proj.repo} ${proj.dir}`, dir: projectsRoot });
+        }
     }
     const subprojectsFile = `${projectsRoot}/${proj.dir}/${PROJECTS_FILE}`;
     if (existsSync(subprojectsFile)) {

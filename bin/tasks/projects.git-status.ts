@@ -10,7 +10,7 @@ const log = getLogger("tk.projects.git-status");
 const workspace = await readWorkspace();
 log.info(`workspaceRoot '${workspace.rootDir}'`);
 
-const projects = workspace.rootDir;
+const projects = workspace.projects;
 let count = 0;
 for (const proj of projects) {
     count++;

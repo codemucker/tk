@@ -5,7 +5,6 @@
 import { readWorkspace } from "./_workspace.ts";
 
 const workspace = await readWorkspace();
-log.info(`workspaceRoot '${workspace.rootDir}'`);
 
 console.log("tk projects.clone              : clone all projects");
 console.log("tk projects.git <git-cmd>      : run the given git command on each project");

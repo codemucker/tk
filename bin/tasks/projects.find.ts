@@ -6,7 +6,7 @@ import { TK_CWD } from "./_cfg.ts";
 import { exec, existsSync, getLogger } from "./_deps.ts";
 import { Project } from "./_projects.ts";
 
-const log = getLogger("tk:projects-find");
+const log = getLogger("tk.projects.find");
 
 async function scan(dir: string, projects: Project[]) {
     const gitDir = `${dir}/.git`;
@@ -56,4 +56,4 @@ async function findGitProjects() {
     log.info("Project file:" + JSON.stringify(p, null, "   "));
 }
 
-findGitProjects();
+await findGitProjects();

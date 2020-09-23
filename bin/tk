@@ -142,11 +142,15 @@ function parse_args_and_invoke_tasks(){
   # loop through all the args
   while [ 1 ]; do
     arg="$1"
-    shift
+    shift || true
     if [[ "$arg" == '--'* ]]; then
       # TODO
       echo "TODO:global opt:$arg"
     else 
+      if [[ "$arg" == "" ]]; then
+        echo "ERR: No task provided"
+        arg="tk.help"
+      fi
       invoke_task "$arg" $@
       return
     fi

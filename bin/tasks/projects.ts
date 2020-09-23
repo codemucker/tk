@@ -1,5 +1,5 @@
 /*
- * Invoke operations ona  set of projects defined in a projects.json file
+ * Invoke operations on a set of projects defined in a projects.json file
  */
 
 import { exec, existsSync, getLogger } from "./_deps.ts";

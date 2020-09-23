@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+#
+# Sets up a git commit template for nice commit messages. 
+#
+# Use 'git commit' with the '-m' flag, and the template will popup
+#
+
+set -Eeuo pipefail & set -e
+
+
+# from 
+TEMPLATE_PATH=~/.gitmessage.codemucker
+TEMPLATE="
+# If applied, this commit will...
+# [Add/Fix/Remove/Update/Refactor/Document] [issue #id] [summary]
+
+# Issue number (fill in '#')
+- [ISSUE-#]
+# Type of change, uncomment the appropriate one
+#- [BREAK]
+#- [FEAT]
+#- [FIX]
+#- [DOCS]
+#- [HOT]
+#- [FORMAT]
+#- [REFACT]
+#- [IMPROVE]
+# Notes
+#   BREAK = Breaking change (major semver bump)
+#   FEAT = Feature update (minor version bump)
+#   FIX = Bug fix (patch version update)
+#   REFACT = Refactor (no functional changes)
+#   FORMAT = Code formatting (no functional changes)
+#   IMPROVE = General Improvement
+#   HOT = Hot Fix
+#   DOCS = Documentation update
+# Why is it necessary? (Bug fix, feature, improvements?)
+- 
+# How does the change address the issue? 
+- 
+# What side effects does this change have?
+- 
+"
+echo "${TEMPLATE}" > "${TEMPLATE_PATH}"
+git config --global commit.template $TEMPLATE_PATH
+
+echo ""
+echo "Created git commit template ${TEMPLATE_PATH}"
+echo ""
+echo "Inspired by https://victoria.dev/blog/git-commit-practices-your-future-self-will-thank-you-for/"
+echo ""
+echo "Use 'git commit' with the '-m' flag to have the commit template automatically open"
+echo ""
+echo "   git commit"
+echo ""
+echo "Remember to also set"
+echo ""
+echo '   git config --global user.name "Your full name here"'
+echo -n "       * currently set to: "
+git config --global user.name
+echo '   git config --global user.email your@email.address'
+echo -n "       * currently set to: "
+git config --global user.email
+echo ""
+
+
+
+
+

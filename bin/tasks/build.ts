@@ -13,7 +13,7 @@ if (existsSync(`${projectDir}/pom.xml`)) {
 } else if (existsSync(`${projectDir}/package.json`)) {
     await exec({ cmd: `npm run build`, dir: `${projectDir}`, silent: false });
 } else if (existsSync(`${projectDir}/${PROJECTS_FILE}`)) {
-    await exec({ cmd: `tk projects invoke tk tk:build`, dir: `${projectDir}`, silent: false });
+    await exec({ cmd: `tk projects invoke tk tk.build`, dir: `${projectDir}`, silent: false });
 } else {
     log.warn("Don't know how to build this project");
 }

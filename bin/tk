@@ -44,9 +44,9 @@ function invoke_deno_script(){
   pushd "$script_dir" >/dev/null
     env \
     TK_CWD="$tk_cwd" \
-    TK_ROOT="$root_dir" \
+    TK_SCRIPT_ROOT="$root_dir" \
     TK_TASK_ARGS="$script_args" \
-    TK_DIR="$tk_dir" \
+    TK_WORK_DIR="$tk_dir" \
     DENO_DIR="$deno_dir" \
     deno run $deno_args $script_args
   popd >/dev/null
@@ -102,8 +102,8 @@ function invoke_task(){
   tried_script_path=()
 
   # don't allow overrides for builtin tasks
-  if [[ $script == "tk:"* ]]; then
-    script=$(echo "$script" | cut -d':' -f 2- )
+  if [[ $script == "tk."* ]]; then
+    script=$(echo "$script" | cut -d'.' -f 2- )
     invoke_builtin_task "$script" "$script_args"
     return
   fi

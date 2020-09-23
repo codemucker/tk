@@ -16,7 +16,8 @@ for (const proj of projects) {
     count++;
     const projExists = existsSync(`./${proj.dir}`);
     log.trace(`projExists:${projExists}, proj:${proj.dir}`);
-    log.info(`${count}/${projects.length} ${proj.dir} - git`);
+    log.info(`${count}/${projects.length} ${proj.dir} - git-status`);
+    await exec({ cmd: `git remote -v`, dir: workspace.rootDir + "/" + proj.dir, silent: false });
     await exec({ cmd: `git branch`, dir: workspace.rootDir + "/" + proj.dir, silent: false });
     await exec({ cmd: `git status -s`, dir: workspace.rootDir + "/" + proj.dir, silent: false });
 }

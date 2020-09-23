@@ -11,4 +11,4 @@ export const DENO_DIR = Deno.env.get("DENO_DIR") || "???";
 
 export const USER_HOME_DIR = Deno.env.get("HOME");
 
-export const PROJECTS_FILE = "tk.projects.json";
+export const WORKSPACE_FILE = "tk.workspace.json";

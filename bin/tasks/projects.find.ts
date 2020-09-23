@@ -4,11 +4,11 @@
 
 import { TK_CWD } from "./_cfg.ts";
 import { exec, existsSync, getLogger } from "./_deps.ts";
-import { Project } from "./_projects.ts";
+import { Project } from "./_workspace.ts";
 
 const log = getLogger("tk.projects.find");
 
-async function scan(dir: string, projects: Project[]) {
+async function scanDown(dir: string, projects: Project[]) {
     const gitDir = `${dir}/.git`;
     //log.info("trying:" + binDir);
     if (existsSync(gitDir)) {
@@ -36,24 +36,24 @@ async function scan(dir: string, projects: Project[]) {
             if (name.startsWith(".") || name == "bin" || name == "node_modules" || name == "build" || name == "dist") {
                 continue;
             }
-            await scan(`${dir}/${entry.name}`, projects);
+            await scanDown(`${dir}/${entry.name}`, projects);
         }
     }
 }
 
-async function findGitProjects() {
+async function findSubDirGitProjects() {
     let dir = TK_CWD;
     if (!dir) {
         log.warn("no directory to start scan from");
         return;
     }
     const projects: Project[] = [];
-    await scan(dir, projects);
+    await scanDown(dir, projects);
 
     const p = {
         projects: projects,
     };
-    log.info("Project file:" + JSON.stringify(p, null, "   "));
+    log.info("Workspace file:" + JSON.stringify(p, null, "   "));
 }
 
-await findGitProjects();
+await findSubDirGitProjects();

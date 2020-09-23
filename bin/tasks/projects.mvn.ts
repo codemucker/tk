@@ -3,17 +3,17 @@
  */
 
 import { exec, existsSync, getLogger } from "./_deps.ts";
-import { readProjects } from "./_projects.ts";
+import { readWorkspace } from "./_workspace.ts";
 
 const log = getLogger("tk.projects.mvn");
-const { projects, projectsRoot } = await readProjects();
 
-log.info(`projectsRoot '${projectsRoot}'`);
+const workspace = await readWorkspace();
+log.info(`workspaceRoot '${workspace.rootDir}'`);
 
+const projects = workspace.projects;
 async function eachProjectMvn(mvnArgs: string) {
     let count = 0;
-    for (var i = 0; i < projects.length; i++) {
-        const proj = projects[i];
+    for (const proj of projects) {
         count++;
         const projExists = existsSync(`./${proj.dir}`);
         log.trace(`projExists:${projExists}, proj:${proj.dir}`);

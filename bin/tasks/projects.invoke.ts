@@ -3,22 +3,22 @@
  */
 
 import { exec, existsSync, getLogger } from "./_deps.ts";
-import { readProjects } from "./_projects.ts";
+import { readWorkspace } from "./_workspace.ts";
 
 const log = getLogger("tk.projects.invoke");
-const { projects, projectsRoot } = await readProjects();
 
-log.info(`projectsRoot '${projectsRoot}'`);
+const workspace = await readWorkspace();
+log.info(`workspaceRoot '${workspace.rootDir}'`);
 
 async function eachProjectInvoke(invokeArgs: string) {
+    const projects = workspace.projects;
     let count = 0;
-    for (var i = 0; i < projects.length; i++) {
-        const proj = projects[i];
+    for (const proj of projects) {
         count++;
-        const projExists = existsSync(`${projectsRoot}/${proj.dir}`);
+        const projExists = existsSync(`${workspace.rootDir}/${proj.dir}`);
         if (projExists) {
             log.info(`${count}/${projects.length} ${proj.dir} - invoke '${invokeArgs}'`);
-            await exec({ cmd: `${invokeArgs}`, dir: projectsRoot + "/" + proj.dir, silent: false });
+            await exec({ cmd: `${invokeArgs}`, dir: workspace.rootDir + "/" + proj.dir, silent: false });
         }
     }
 }

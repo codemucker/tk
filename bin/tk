@@ -122,7 +122,7 @@ function invoke_task(){
       fi
     done
     # if it's the workspace root, stop
-    if [[ -f "$cur_dir/tk.projects.json" ]]; then
+    if [[ -f "$cur_dir/tk.workspace.json" ]]; then
       invoke_builtin_task "$script" $script_args
       return
     else

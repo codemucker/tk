@@ -2,19 +2,20 @@
  * Cloen or update all the projects
  */
 
-import { PROJECTS_FILE } from "./_cfg.ts";
+import { WORKSPACE_FILE } from "./_cfg.ts";
 import { exec, existsSync, getLogger } from "./_deps.ts";
-import { readProjects } from "./_projects.ts";
+import { readWorkspace } from "./_workspace.ts";
 
 const log = getLogger("tk.projects.clone");
-const { projects, projectsRoot } = await readProjects();
 
-log.info(`projectsRoot '${projectsRoot}'`);
+const workspace = await readWorkspace();
+log.info(`workspaceRoot '${workspace.rootDir}'`);
 
+const projects = workspace.projects;
 let count = 0;
 for (const proj of projects) {
     count++;
-    const projExists = existsSync(`${projectsRoot}/${proj.dir}/`);
+    const projExists = existsSync(`${workspace.rootDir}/${proj.dir}/`);
     log.trace(`projExists:${projExists}, proj:${proj.dir}`);
     if (projExists) {
         log.info(`${count}/${projects.length} ${proj.dir} - exists, skipping clone`);
@@ -23,7 +24,7 @@ for (const proj of projects) {
         try {
             await exec({
                 cmd: `git ls-remote ${proj.repo} >/dev/null  2>/dev/null`,
-                dir: projectsRoot,
+                dir: workspace.rootDir,
                 silent: false,
                 logError: false,
             });
@@ -33,12 +34,12 @@ for (const proj of projects) {
         }
         if (canAccessRepo) {
             log.info(`${count}/${projects.length} ${proj.dir} - cloning`);
-            await exec({ cmd: `git clone ${proj.repo} ${proj.dir}`, dir: projectsRoot });
+            await exec({ cmd: `git clone ${proj.repo} ${proj.dir}`, dir: workspace.rootDir });
         }
     }
-    const subprojectsFile = `${projectsRoot}/${proj.dir}/${PROJECTS_FILE}`;
-    if (existsSync(subprojectsFile)) {
-        log.info(`Cloning subprojects in ${subprojectsFile}`);
-        await exec({ cmd: "tk tk.projects.clone", dir: `${projectsRoot}/${proj.dir}`, silent: false });
+    const subWorkspaceFile = `${workspace.rootDir}/${proj.dir}/${WORKSPACE_FILE}`;
+    if (existsSync(subWorkspaceFile)) {
+        log.info(`Cloning sub projects in workspace '${subWorkspaceFile}'`);
+        await exec({ cmd: "tk tk.projects.clone", dir: `${workspace.rootDir}/${proj.dir}`, silent: false });
     }
 }

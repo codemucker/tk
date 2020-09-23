@@ -3,12 +3,14 @@
  */
 
 import { getLogger } from "./_deps.ts";
-import { readProjects } from "./_projects.ts";
+import { readWorkspace } from "./_workspace.ts";
 
 const log = getLogger("tk.projects.list");
-const { projects, projectsRoot } = await readProjects();
 
-log.info(`projectsRoot '${projectsRoot}'`);
+const workspace = await readWorkspace();
+log.info(`workspaceRoot '${workspace.rootDir}'`);
+
+const projects = workspace.projects;
 let count = 0;
 projects.forEach((proj) => {
     count++;

@@ -1,19 +1,19 @@
-import { PROJECTS_FILE, TK_CWD } from "./_cfg.ts";
+import { TK_CWD, WORKSPACE_FILE } from "./_cfg.ts";
 import { existsSync, getLogger, path } from "./_deps.ts";
 
-const log = getLogger("tk.projects");
+const log = getLogger("tk._workspace");
 
-function findProjectFile() {
+function findWorkspaceFile() {
     let dir = TK_CWD;
     log.trace(`looking projects from ${dir}`);
     let count = 15;
 
     while (true) {
         count--;
-        const projectsFile = `${dir}/${PROJECTS_FILE}`;
-        log.trace(`trying projectsFile=${projectsFile}`);
-        if (existsSync(projectsFile)) {
-            return projectsFile;
+        const workspaceFile = `${dir}/${WORKSPACE_FILE}`;
+        log.trace(`testing file exists ${workspaceFile}`);
+        if (existsSync(workspaceFile)) {
+            return workspaceFile;
         }
         dir = Deno.realPathSync(`${dir}/..`);
 
@@ -22,7 +22,7 @@ function findProjectFile() {
             break;
         }
     }
-    throw `Could not find '${PROJECTS_FILE}' file anywhere in the folder hierachy`;
+    throw `Could not find '${WORKSPACE_FILE}' file anywhere in the folder hierachy`;
 }
 
 type ProjectJson = {
@@ -43,6 +43,12 @@ export type Project = {
     enabled: boolean;
 };
 
+export type Workspace = {
+    rootDir: string;
+    workspaceFile: string;
+    projects: Project[];
+};
+
 function toProject(proj: ProjectJson): Project {
     return {
         name: proj.name.trim(),
@@ -54,14 +60,14 @@ function toProject(proj: ProjectJson): Project {
     };
 }
 
-export async function readProjects(): Promise<{ projects: Project[]; projectsRoot: string }> {
-    const projFilePath = findProjectFile();
-    const projectsJson = JSON.parse(await Deno.readTextFile(projFilePath));
-    log.trace("Found project file", { file: projFilePath });
+export async function readWorkspace(): Promise<Workspace> {
+    const workspaceFile = findWorkspaceFile();
+    const workspaceJson = JSON.parse(await Deno.readTextFile(workspaceFile));
+    log.trace("Found workspace file", { file: workspaceFile });
 
-    const projects = (projectsJson?.projects || []) as ProjectJson[];
+    const projects = (workspaceJson?.projects || []) as ProjectJson[];
     const enabledProjects = projects.map(toProject).filter((p) => p.enabled);
 
-    const projRoot = path.dirname(projFilePath);
-    return { projectsRoot: projRoot, projects: enabledProjects };
+    const workspaceRoot = path.dirname(workspaceFile);
+    return { rootDir: workspaceRoot, projects: enabledProjects, workspaceFile: workspaceFile };
 }

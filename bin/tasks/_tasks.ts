@@ -25,7 +25,10 @@ function _findTasksInDir(tasksByName: { [name: string]: Task }, dir: string) {
                     continue;
                 }
                 let task = filename;
-                if (task.endsWith(".sh") || task.endsWith(".ts")) {
+                if (task.endsWith(".tk.sh") || task.endsWith(".tk.ts")) {
+                    task = task.slice(0, task.length - 6);
+                }
+                else if (task.endsWith(".sh") || task.endsWith(".ts")) {
                     task = task.slice(0, task.length - 3);
                 }
                 if (!tasksByName[task]) {

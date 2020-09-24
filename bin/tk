@@ -112,7 +112,7 @@ function invoke_task(){
   cur_dir="$tk_cwd"
   # try to find a script to exdcute the given task
   while [ 1 ]; do
-    try_scripts=("$cur_dir/bin/$script" "$cur_dir/bin/$script.sh" "$cur_dir/bin/$script.ts")
+    try_scripts=("$cur_dir/bin/$script" "$cur_dir/bin/$script.tk.sh" "$cur_dir/bin/$script.sh" "$cur_dir/bin/$script.tk.ts" "$cur_dir/bin/$script.ts")
     for file in ${try_scripts[@]}; do
       tried_script_path+=("$file")
       #echo "trying: $file"

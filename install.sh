@@ -5,5 +5,14 @@
 #
 
 set -Eeuo pipefail
-git clone git@github.com:codemucker/tk.git -branch master --single-branch  ~/.tk/
-ln -s ~/.tk/bin/tk ~/bin/tk
+tk_home="$HOME/.tk"
+
+if [[ -d "$tk_home" ]]; then
+	echo "'tk' already installed in '$tk_home'. Run 'tk tk.update' to upgrade to latest version"
+else
+	echo "installing tk to '$tk_home'"
+	git clone --branch master --single-branch  git@github.com:codemucker/tk.git "$tk_home"
+fi
+if [[ ! -f "$HOME/bin/tk" ]]; then
+	ln -s "$tk_home/bin/tk" "$HOME/bin/tk"
+fi

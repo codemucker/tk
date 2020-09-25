@@ -41,5 +41,19 @@ for (const proj of projects) {
     if (existsSync(subWorkspaceFile)) {
         log.info(`Cloning sub projects in workspace '${subWorkspaceFile}'`);
         await exec({ cmd: "tk tk.projects.clone", dir: `${workspace.rootDir}/${proj.dir}`, silent: false });
+      
+
+      const gitModules=`${workspace.rootDir}/${proj.dir}/.gitmodules`
+        if (existsSync(gitModules)) {
+            log.info(`Worskapce has git modules, checking out sub modules`)
+            await exec({ cmd: 'git submodule update --init', dir: `${workspace.rootDir}/${proj.dir}`, silent: false});      
+        }
+
+        const subWorkspace = await readWorkspace(subWorkspaceFile);
+        const postCloneCmd = subWorkspace["post.clone"]
+        if(postCloneCmd){
+            log.info(`Running post clone cmd '${postCloneCmd}'`)
+            await exec({ cmd: postCloneCmd, dir: `${workspace.rootDir}/${proj.dir}`, silent: false});
+        }
     }
 }

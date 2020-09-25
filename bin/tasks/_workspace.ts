@@ -47,6 +47,7 @@ export type Workspace = {
     rootDir: string;
     workspaceFile: string;
     projects: Project[];
+    "post.clone"?: string;
 };
 
 function toProject(proj: ProjectJson): Project {
@@ -60,8 +61,8 @@ function toProject(proj: ProjectJson): Project {
     };
 }
 
-export async function readWorkspace(): Promise<Workspace> {
-    const workspaceFile = findWorkspaceFile();
+export async function readWorkspace(workspaceFilePath?:string): Promise<Workspace> {
+    const workspaceFile = workspaceFilePath || findWorkspaceFile();
     const workspaceJson = JSON.parse(await Deno.readTextFile(workspaceFile));
     log.trace("Found workspace file", { file: workspaceFile });
 

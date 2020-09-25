@@ -64,9 +64,9 @@ function invoke_script(){
   else
     script_dir="$(dirname "$file")"
     #echo "executing script '$file'"
-    pushd "$script_dir/.."
+    pushd "$script_dir/.." >/dev/null
      "$file" $script_args
-    popd
+    popd >/dev/null
   fi  
 }
 

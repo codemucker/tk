@@ -10,7 +10,7 @@ const log = getLogger("tk.projects.git");
 const workspace = await readWorkspace();
 log.info(`workspaceRoot '${workspace.rootDir}'`);
 
-async function execGitCmdPerProject(gitCmd: string) {
+async function execGitCmdPerProject(gitArgs: string[]) {
     const projects = workspace.projects;
     let count = 0;
 
@@ -19,8 +19,9 @@ async function execGitCmdPerProject(gitCmd: string) {
         const projExists = existsSync(`./${proj.dir}`);
         log.trace(`projExists:${projExists}, proj:${proj.dir}`);
         log.info(`${count}/${projects.length} ${proj.dir} - git`);
-        await exec({ cmd: `git ${gitCmd}`, dir: workspace.rootDir + "/" + proj.dir, silent: false });
+
+        await exec({ cmd: ['git', ...gitArgs ] , dir: workspace.rootDir + "/" + proj.dir, silent: false });
     }
 }
 
-await execGitCmdPerProject(Deno.args.join(" "));
+await execGitCmdPerProject(Deno.args);

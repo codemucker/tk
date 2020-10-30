@@ -25,7 +25,6 @@ function invoke_deno_script(){
   script="$1"
   shift
   script_args="$@"
-
   script_dir="$(dirname "$script")/.."
 
   if ! command -v deno &> /dev/null; then
@@ -45,10 +44,10 @@ function invoke_deno_script(){
     env \
     TK_CWD="$tk_cwd" \
     TK_SCRIPT_ROOT="$root_dir" \
-    TK_TASK_ARGS="$script_args" \
+    TK_TASK_ARGS='"$@"' \
     TK_WORK_DIR="$tk_dir" \
     DENO_DIR="$deno_dir" \
-    deno run $deno_args $script_args
+    deno run $deno_args "$@"
   popd >/dev/null
 }
 
@@ -60,12 +59,12 @@ function invoke_script(){
   script_args="$@"
 
   if [[ $file == *".ts" ]]; then
-    invoke_deno_script "$file" $script_args
+    invoke_deno_script "$file" "$@"
   else
     script_dir="$(dirname "$file")"
     #echo "executing script '$file'"
     pushd "$script_dir/.." >/dev/null
-     "$file" $script_args
+     "$file" "$@"
     popd >/dev/null
   fi  
 }
@@ -81,7 +80,7 @@ function invoke_builtin_task(){
     tried_script_path+=("$file")
     #echo "trying: $file"
     if [[ -f "$file" ]]; then
-      invoke_script "$file" "$script_args"
+      invoke_script "$file" "$@"
       return
     fi
   done
@@ -104,7 +103,7 @@ function invoke_task(){
   # don't allow overrides for builtin tasks
   if [[ $script == "tk."* ]]; then
     script=$(echo "$script" | cut -d'.' -f 2- )
-    invoke_builtin_task "$script" "$script_args"
+    invoke_builtin_task "$script" "$@"
     return
   fi
   #echo "invoke script: $script, args: $script_args "
@@ -117,13 +116,13 @@ function invoke_task(){
       tried_script_path+=("$file")
       #echo "trying: $file"
       if [[ -f "$file" ]]; then
-        invoke_script "$file" $script_args
+        invoke_script "$file" "$@"
         return
       fi
     done
     # if it's the workspace root, stop
     if [[ -f "$cur_dir/tk.workspace.json" ]]; then
-      invoke_builtin_task "$script" $script_args
+      invoke_builtin_task "$script" "$@"
       return
     else
       # walk up one dir and try again
@@ -131,7 +130,7 @@ function invoke_task(){
       cur_dir="$($_realpath $cur_dir/..)"
       # if we hit the root, stop
       if [[ "$cur_dir" == '/' ]] || [[ "$cur_dir" == "$user_home" ]] ; then
-        invoke_builtin_task "$script" $script_args
+        invoke_builtin_task "$script" "$@"
         return
       fi
     fi
@@ -151,7 +150,7 @@ function parse_args_and_invoke_tasks(){
         echo "ERR: No task provided"
         arg="tk.help"
       fi
-      invoke_task "$arg" $@
+      invoke_task "$arg" "$@"
       return
     fi
   done

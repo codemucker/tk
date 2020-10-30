@@ -10,7 +10,7 @@ const log = getLogger("tk:docker");
 async function invoke(args: string[]) {
     log.info("running docker command", { args });
     //find Dockerfile for project
-    const imageName = `codemucker/tk-project-runner:${hashCode(TK_CWD)}:dev`;
+    const imageName = `codemucker/tk-project-runner:dev_${hashCode(TK_CWD)}`;
     if (existsSync(`${TK_CWD}/Dockerfile`)) {
         await exec({
             cmd: `docker build --target development -t ${imageName} .`,

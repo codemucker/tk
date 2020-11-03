@@ -29,7 +29,7 @@ function invoke_deno_script(){
 
   if ! command -v deno &> /dev/null; then
     	echo "'deno' is not installed'" 
-      $root_dir/bin/deno-install.sh
+      $root_dir/bin/deno.install.sh
 	fi
 
   #echo "executing deno script '$script' in dir '$script_dir'"
